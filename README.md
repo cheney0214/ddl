@@ -1,42 +1,35 @@
-ddl
-===
-http://fanli7.net/a/bianchengyuyan/_NET/20140622/520779.html
+private boolean login(String username, String password) {
+		HttpClient httpClient = new DefaultHttpClient();
 
+		HttpPost request = new HttpPost(AUTH_URL);
+		request.addHeader("Content-Type", "application/x-www-form-urlencoded");
 
-@POST
-	@Path("/upload")
-	@Consumes(MediaType.MULTIPART_FORM_DATA)
-	public void uploadHead(
-			@Multipart(value = "id", type = "text/plain") String id,
-			@Multipart(value = "name", type = "text/plain") String name,
-			@Multipart(value = "image", type = "application/octet-stream") Attachment image);
-			
-			
-			
-public static void main(String[] args) {
-		WebClient client = WebClient.create("http://localhost:8080/download/rest/person/upload");
-		client.type("multipart/form-data");
-		
-		List<Attachment> atts = new LinkedList<Attachment>();
-		atts.add(new Attachment("id", "text/plain", "id"));
-		atts.add(new Attachment("name", "text/plain", "name"));
-		ContentDisposition cd = new ContentDisposition("attachment;filename=image.jpg");
-		atts.add(new Attachment("image", getImageInputStream(), cd));
-		
-		client.post(new MultipartBody(atts));
-		 
-	}
-	
-	public static InputStream getImageInputStream() {
-		File file = new File("/Users/cheney/Documents/xj2014_03_27_09_07_55.jpg");
-		InputStream input = null;
-		
+		/* body part */
+		List<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>();
+		BasicNameValuePair pare = new BasicNameValuePair("username", username);
+		nameValuePairs.add(pare);
+		pare = new BasicNameValuePair("password", password);
+		nameValuePairs.add(pare);
+
+		UrlEncodedFormEntity entity;
 		try {
-			input = new FileInputStream(file);
-		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
+			entity = new UrlEncodedFormEntity(nameValuePairs, HTTP.UTF_8);
+			request.setEntity(entity);
+		} catch (UnsupportedEncodingException e) {
 			e.printStackTrace();
 		}
-		
-		return input;
+
+		try {
+			HttpResponse response = httpClient.execute(request);
+			if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
+				authToken = Base64.encodeBase64String((username + ":" + password).getBytes("UTF-8"));
+				return true;
+			}
+		} catch (ClientProtocolException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+
+		return false;
 	}
